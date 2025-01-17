@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Personal website of Kai Chan">
+    <title>Kai Chan</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="KCFavicon.png" type="image/x-icon">
+
+    <!-- Google Fonts for Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Inline CSS -->
+    <style>
+        /* Global body styling */
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #f4f4f9; /* Light grey background for readability */
+            color: #333; /* Dark grey text for contrast */
+            text-align: center;
+            padding: 20px;
+        }
+        /* Centered container with shadow and rounded corners */
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff; /* White background for contrast */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            border-radius: 8px; /* Rounded corners */
+        }
+        /* Profile picture styling */
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%; /* Makes the image circular */
+            margin-bottom: 20px;
+        }
+        /* Main heading styling */
+        h1 {
+            font-size: 2.5em; /* Large, prominent font size */
+            margin-bottom: 10px;
+        }
+        /* General paragraph styling */
+        p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        /* General link styling */
+        a {
+            color: #0073e6; /* Blue color for links */
+            text-decoration: none; /* Removes underline */
+        }
+        a:hover {
+            color: #005bb5; /* Darker blue on hover */
+            text-decoration: underline; /* Adds underline on hover */
+        }
+        /* Certificate section container */
+        .certificates {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap; /* Wraps certificates on smaller screens */
+            padding: 10px;
+        }
+        /* Certificate image styling */
+        .certificates img {
+            max-width: 150px;
+            height: 150px;
+            object-fit: contain; /* Ensures images fit within the container */
+            border-radius: 8px; /* Slightly rounded corners */
+            background: #fff; /* Background for better visibility */
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effect */
+        }
+        .certificates img:hover {
+            transform: scale(1.05); /* Slightly enlarges the image on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Increases shadow on hover */
+        }
+        /* CV link button styling */
+        .cv-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #808080; /* Grey button background */
+            color: #fff; /* White text */
+            text-decoration: none; /* No underline */
+            border-radius: 5px; /* Rounded corners */
+            font-weight: bold; /* Bold text */
+            transition: background 0.2s ease-in-out; /* Smooth background transition */
+        }
+        .cv-link:hover {
+            background: #666666; /* Darker grey on hover */
+        }
+        /* LinkedIn link styling */
+        .linkedin-link {
+            color: #0073b1; /* LinkedIn blue */
+            font-size: 1.1em;
+            text-decoration: none; /* No underline */
+            display: inline-flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+        }
+        .linkedin-link:hover {
+            color: #005582; /* Darker blue on hover */
+        }
+        .linkedin-link i {
+            font-size: 1.2em; /* Slightly larger icon */
+        }
+        /* Footer styling */
+        footer {
+            margin-top: 30px;
+            font-size: 0.9em; /* Smaller font for footer */
+            color: #666; /* Light grey text */
+        }
+    </style>
+</head>
+<body>
+    <!-- Header section containing the main profile information -->
+    <header>
+        <div class="container">
+            <!-- Profile picture -->
+            <img src="kaipic.jpeg" alt="Profile picture of Kai Chan" class="profile-pic">
+            <h1>Kai Chan</h1>
+            
+            <!-- Email address -->
+            <p>E: <a href="mailto:kai@chan.fi">Kai@Chan.fi</a></p>
+            
+            <!-- Job title and company link -->
+            <p>Senior ITSD Technician @
+                <a href="https://www.poolebayholdings.co.uk/" target="_blank">Poole Bay Holdings Management LTD</a>
+            </p>
+            
+<!-- LinkedIn and GitHub profile links -->
+<p>
+    <a href="https://www.linkedin.com/in/KaiJChan" target="_blank" class="linkedin-link">
+        <i class="fab fa-linkedin"></i> LinkedIn
+    </a>
+    |
+    <a href="https://github.com/Kai-JC" target="_blank" class="linkedin-link">
+        <i class="fab fa-github"></i> GitHub
+    </a>
+</p>
+            
+            <!-- CV download link -->
+            <p><a href="KCCV.pdf" target="_blank" class="cv-link">View CV</a></p>
+        </div>
+    </header>
+
+    <!-- Section for certifications -->
+    <section class="container certificates">
+        <!-- Certificate links and images -->
+        <a href="ACertificate.jpg" target="_blank">
+            <img src="CompitaACert.png" alt="CompTIA A+ Certification">
+        </a>
+        <a href="TKA_Oracle_Fundamentals_Cert.pdf" target="_blank">
+            <img src="SQL-fundamentals.png" alt="Oracle SQL Fundamentals Certification">
+        </a>
+        <a href="EDICert.jpg" target="_blank">
+            <img src="EDIBadge.png" alt="EDI Diploma Certification">
+        </a>
+        <a href="IT_App_Spec_Cert.jpg" target="_blank">
+            <img src="App_Badge.png" alt="Apprenticeship IT App Specialist">
+        </a>
+    </section>
+    
+    <!-- Footer with dynamic year -->
+    <footer>
+        &copy; <span id="year"></span> Kai Chan. All rights reserved.
+        <script>
+            // Script to dynamically update the year in the footer
+            document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
+    </footer>
+</body>
+</html>
