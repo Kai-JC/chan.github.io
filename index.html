@@ -71,19 +71,22 @@
         }
         /* Certificate image styling */
         .certificates img {
-            max-width: 150px;
-            height: 150px;
-            object-fit: contain; /* Ensures images fit within the container */
-            border-radius: 8px; /* Slightly rounded corners */
-            background: #1e1e1e; /* Dark background for better visibility */
-            padding: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effect */
-        }
-        .certificates img:hover {
-            transform: scale(1.05); /* Slightly enlarges the image on hover */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7); /* Increases shadow on hover */
-        }
+    max-width: 150px;
+    height: 150px;
+    object-fit: contain; /* Ensures images fit within the container */
+    border-radius: 8px; /* Slightly rounded corners */
+    background: #1e1e1e; /* Dark background for consistency */
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Smooth hover effect */
+    border: 2px solid #424242; /* Add a visible border */
+}
+
+.certificates img:hover {
+    transform: scale(1.05); /* Slightly enlarges the image on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7); /* Increases shadow on hover */
+    border-color: #90caf9; /* Brighter border color on hover */
+}
         /* CV link button styling */
         .cv-link {
             display: inline-block;
