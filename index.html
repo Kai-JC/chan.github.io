@@ -61,7 +61,6 @@
             color: #005bb5; /* Darker blue on hover */
             text-decoration: underline; /* Adds underline on hover */
         }
-
         /* CV link button styling */
         .cv-link {
             display: inline-block;
@@ -126,13 +125,20 @@
 
     /* Carousel Styling */
     .cert-carousel img {
-        max-width: 100px; /* Smaller fixed size */
+        max-width: 100px;
         height: 100px;
         object-fit: contain;
         margin: 10px auto;
         border-radius: 8px;
+        border: 2px solid #90caf9; /* Light blue border */
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         background: #1e1e1e;
+        transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out; /* Smooth hover effect */
+    }
+    .cert-carousel img:hover {
+        transform: scale(1.05); /* Slightly enlarges the image on hover */
+        border-color: #42a5f5; /* Brighter blue on hover */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7); /* More pronounced shadow on hover */
     }
     .slick-dots li button:before {
         color: #90caf9; /* Dots color */
@@ -152,13 +158,13 @@
             <img src="assets/images/kaipic.jpeg" alt="Profile picture of Kai Chan" class="profile-pic">
             <h1>Kai Chan</h1>
             
-            <!-- Email address -->
-            <p>E: <a href="mailto:kai@chan.fi">Kai@Chan.fi</a></p>
-            
             <!-- Job title and company link -->
             <p>Senior ITSD Technician @
                 <a href="https://www.poolebayholdings.co.uk/" target="_blank">Poole Bay Holdings Management LTD</a>
             </p>
+
+            <!-- Email address -->
+            <p>E: <a href="mailto:kai@chan.fi">Kai@Chan.fi</a></p>
             
 <!-- LinkedIn and GitHub profile links -->
 <p>
@@ -178,7 +184,8 @@
 
     <!-- Section for certifications -->
     
-    <div class="cert-carousel">
+    <section class="container">
+        <!-- Slick Carousel for certifications -->
         <div class="cert-carousel">
             <div><img src="assets/images/CompitaACert.png" alt="CompTIA A+ Certification" /></div>
             <div><img src="assets/images/SQL-fundamentals.png" alt="Oracle SQL Fundamentals Certification" /></div>
@@ -186,19 +193,7 @@
             <div><img src="assets/images/App_Badge.png" alt="IT Application Specialist" /></div>
         </div>
     
-        <!-- Certificate links and images -->
-        <a href="assets/images/ACertificate.jpg" target="_blank">
-            <img src="assets/images/CompitaACert.png" alt="CompTIA A+ Certification">
-        </a>
-        <a href="assets/TKA_Oracle_Fundamentals_Cert.pdf" target="_blank">
-            <img src="assets/images/SQL-fundamentals.png" alt="Oracle SQL Fundamentals Certification">
-        </a>
-        <a href="assets/images/EDICert.jpg" target="_blank">
-            <img src="assets/images/EDIBadge.png" alt="EDI Diploma Certification">
-        </a>
-        <a href="assets/images/IT_App_Spec_Cert.jpg" target="_blank">
-            <img src="assets/images/App_Badge.png" alt="Apprenticeship IT App Specialist">
-        </a>
+
     
     
     <!-- Footer with dynamic year -->
@@ -227,8 +222,18 @@
                 dots: true,
                 arrows: true,
                 responsive: [
-                    { breakpoint: 768, settings: { slidesToShow: 2 } },
-                    { breakpoint: 480, settings: { slidesToShow: 1 } }
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 2
+                        }
+                    },
+                    {
+                        breakpoint: 480,
+                        settings: {
+                            slidesToShow: 1
+                        }
+                    }
                 ]
             });
         });
