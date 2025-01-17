@@ -125,7 +125,46 @@
     <!-- Slick CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
-    </head>
+    
+<style>
+    /* Dark Theme Restoration */
+    body {
+        background: #121212; /* Dark background */
+        color: #e0e0e0; /* Light text color */
+    }
+    .container {
+        background: #1e1e1e; /* Darker container background */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    a {
+        color: #90caf9; /* Light blue links */
+    }
+    a:hover {
+        color: #42a5f5;
+    }
+    footer {
+        color: #9e9e9e;
+    }
+
+    /* Carousel Styling */
+    .cert-carousel img {
+        max-width: 100px; /* Smaller fixed size */
+        height: 100px;
+        object-fit: contain;
+        margin: 10px auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        background: #1e1e1e;
+    }
+    .slick-dots li button:before {
+        color: #90caf9; /* Dots color */
+    }
+    .slick-prev:before,
+    .slick-next:before {
+        color: #90caf9; /* Arrows color */
+    }
+</style>
+</head>
     
 <body>
     <!-- Header section containing the main profile information -->
@@ -183,7 +222,7 @@
         <a href="assets/images/IT_App_Spec_Cert.jpg" target="_blank">
             <img src="assets/images/App_Badge.png" alt="Apprenticeship IT App Specialist">
         </a>
-    </section>
+    
     
     <!-- Footer with dynamic year -->
     <footer>
