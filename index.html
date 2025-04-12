@@ -1,185 +1,140 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Personal website of Kai Chan">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Personal website of Kai Chan" />
+    <meta name="theme-color" content="#121212" />
     <title>Kai Chan</title>
-    
+
     <!-- Favicon -->
-    <link rel="icon" href="assets/images/KCFavicon.png" type="image/x-icon">
+    <link rel="icon" href="assets/images/KCFavicon.png" type="image/x-icon" />
 
     <!-- Google Fonts for Roboto -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
     <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <!-- Inline CSS -->
-    <style>
-        /* Global body styling */
-        body {
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-            background: #f4f4f9; /* Light grey background for readability */
-            color: #333; /* Dark grey text for contrast */
-            text-align: center;
-            padding: 20px;
-        }
-        /* Centered container with shadow and rounded corners */
-        .container {
-            max-width: 600px;
-            margin: 10px auto;
-            padding: 20px;
-            background: #fff; /* White background for contrast */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-            border-radius: 8px; /* Rounded corners */
-        }
-        /* Profile picture styling */
-        .profile-pic {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%; /* Makes the image circular */
-            margin-bottom: 2px;
-            border: 2px solid rgba(211, 211, 211, 0.6); /* Light grey, semi-transparent border */
-        }
-        /* Main heading styling */
-        h1 {
-            font-size: 2.5em; /* Large, prominent font size */
-            margin-bottom: 2px;
-        }
-        /* General paragraph styling */
-        p {
-            font-size: 1.1em;
-            margin-bottom: 2px;
-        }
-        /* General link styling */
-        a {
-            color: #0073e6; /* Blue color for links */
-            text-decoration: none; /* Removes underline */
-        }
-        a:hover {
-            color: #005bb5; /* Darker blue on hover */
-            text-decoration: underline; /* Adds underline on hover */
-        }
-        /* CV link button styling */
-        .cv-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: #808080; /* Grey button background */
-            color: #fff; /* White text */
-            text-decoration: none; /* No underline */
-            border-radius: 5px; /* Rounded corners */
-            font-weight: bold; /* Bold text */
-            transition: background 0.2s ease-in-out; /* Smooth background transition */
-        }
-        .cv-link:hover {
-            background: #666666; /* Darker grey on hover */
-        }
-        /* LinkedIn link styling */
-        .linkedin-link {
-            color: #0073b1; /* LinkedIn blue */
-            font-size: 1.1em;
-            text-decoration: none; /* No underline */
-            display: inline-flex;
-            align-items: center;
-            gap: 5px; /* Space between icon and text */
-        }
-        .linkedin-link:hover {
-            color: #005582; /* Darker blue on hover */
-        }
-        .linkedin-link i {
-            font-size: 1.2em; /* Slightly larger icon */
-        }
-        /* Footer styling */
-        footer {
-            margin-top: 30px;
-            font-size: 0.9em; /* Smaller font for footer */
-            color: #666; /* Light grey text */
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <!-- Slick CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
-    
-<style>
-    /* Dark Theme Restoration */
-    body {
-        background: #121212; /* Dark background */
-        color: #e0e0e0; /* Light text color */
-    }
-    .container {
-        background: #1e1e1e; /* Darker container background */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    }
-    a {
-        color: #90caf9; /* Light blue links */
-    }
-    a:hover {
-        color: #42a5f5;
-    }
-    footer {
-        color: #9e9e9e;
-    }
 
-    /* Carousel Styling */
-    .cert-carousel img {
-        max-width: 100px; /* Smaller fixed size */
-        height: 100px;
-        object-fit: contain;
-        margin: 10px auto;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        background: #1e1e1e;
-    }
-    .slick-dots li button:before {
-        color: #90caf9; /* Dots color */
-    }
-    .slick-prev:before,
-    .slick-next:before {
-        color: #90caf9; /* Arrows color */
-    }
-</style>
+    <!-- Combined and cleaned CSS -->
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+        }
+        .profile-pic {
+            width: 150px;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 2px;
+            border: 2px solid rgba(211, 211, 211, 0.6);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 2px;
+        }
+        p {
+            font-size: 1.1em;
+            margin-bottom: 2px;
+        }
+        a {
+            color: #90caf9;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #42a5f5;
+            text-decoration: underline;
+        }
+        .cv-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #808080;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.2s ease-in-out;
+        }
+        .cv-link:hover {
+            background: #666666;
+        }
+        .linkedin-link {
+            color: #90caf9;
+            font-size: 1.1em;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .linkedin-link:hover {
+            color: #42a5f5;
+        }
+        .linkedin-link i {
+            font-size: 1.2em;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #9e9e9e;
+        }
+        .cert-carousel img {
+            max-width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin: 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: #1e1e1e;
+        }
+        .slick-dots li button:before,
+        .slick-prev:before,
+        .slick-next:before {
+            color: #90caf9;
+        }
+    </style>
 </head>
-    
+
 <body>
-    <!-- Header section containing the main profile information -->
     <header>
         <div class="container">
-            <!-- Profile picture -->
-            <img src="assets/images/kaipic.jpg" alt="Profile picture of Kai Chan" class="profile-pic">
+            <img src="assets/images/kaipic.jpg" alt="Profile picture of Kai Chan" class="profile-pic" />
             <h1>Kai Chan</h1>
-            
-            <!-- Job title and company link -->
             <p>Senior ITSD Technician @
-                <a href="https://www.poolebayholdings.co.uk/" target="_blank">Poole Bay Holdings Management LTD</a>
+                <a href="https://www.poolebayholdings.co.uk/" target="_blank" rel="noopener noreferrer">Poole Bay Holdings Management LTD</a>
             </p>
-
-            <!-- Email address -->
             <p><a href="mailto:kai@chan.fi">Kai@Chan.fi</a></p>
-            
-<!-- LinkedIn and GitHub profile links -->
-<p>
-    <a href="https://www.linkedin.com/in/KaiJChan" target="_blank" class="linkedin-link">
-        <i class="fab fa-linkedin"></i> LinkedIn
-    </a>
-    |
-    <a href="https://github.com/Kai-JC" target="_blank" class="linkedin-link">
-        <i class="fab fa-github"></i> GitHub
-    </a>
-</p>
-            
-            <!-- CV download link -->
-            <p><a href="assets/KaiCV.pdf" target="_blank" class="cv-link">View CV</a></p>
+            <p>
+                <a href="https://www.linkedin.com/in/KaiJChan" target="_blank" rel="noopener noreferrer" class="linkedin-link">
+                    <i class="fab fa-linkedin"></i> LinkedIn
+                </a>
+                |
+                <a href="https://github.com/Kai-JC" target="_blank" rel="noopener noreferrer" class="linkedin-link">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </p>
+            <p><a href="assets/KaiCV.pdf" target="_blank" class="cv-link" aria-label="Download Kai Chan's CV in PDF format">View CV</a></p>
         </div>
     </header>
 
-    <!-- Section for certifications -->
-    
     <section class="container">
-        <!-- Slick Carousel for certifications -->
         <div class="cert-carousel">
             <div><img src="assets/images/CompitaACert.png" alt="CompTIA A+ Certification" /></div>
             <div><img src="assets/images/SQL-fundamentals.png" alt="Oracle SQL Fundamentals Certification" /></div>
@@ -187,28 +142,18 @@
             <div><img src="assets/images/EDIBadge.png" alt="EDI Diploma Certification" /></div>
             <div><img src="assets/images/App_Badge.png" alt="IT Application Specialist" /></div>
         </div>
-    
+    </section>
 
-    
-    
+    <footer>
+        &copy; <span id="year"></span> Kai Chan. All rights reserved.
+        <script>
+            document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
+    </footer>
 
-</section>
-<!-- Footer with dynamic year -->
-<footer style="text-align: center; margin-top: 30px;">
-    &copy; <span id="year"></span> Kai Chan. All rights reserved.
-    <script>
-        // Script to dynamically update the year in the footer
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
-</footer>
-
-
-    <!-- jQuery (required for Slick) -->
+    <!-- jQuery & Slick -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Slick JS -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
-
     <script>
         $(document).ready(function () {
             $('.cert-carousel').slick({
@@ -236,6 +181,20 @@
             });
         });
     </script>
-    </body>
-    
+
+    <!-- SEO JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Kai Chan",
+        "jobTitle": "Senior ITSD Technician",
+        "url": "https://kai.chan.fi",
+        "sameAs": [
+            "https://www.linkedin.com/in/KaiJChan",
+            "https://github.com/Kai-JC"
+        ]
+    }
+    </script>
+</body>
 </html>
