@@ -17,7 +17,7 @@ form.addEventListener("submit", async (e) => {
   chatLog.scrollTop = chatLog.scrollHeight;
 
   try {
-    // IMPORTANT: Replace the URL below with your external backend URL (see Part 2)
+    // IMPORTANT: Replace the URL below with your external backend URL
     const response = await fetch("https://sparkly-pie-12714f.netlify.app/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
