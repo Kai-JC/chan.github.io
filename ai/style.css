@@ -1,1 +1,52 @@
+/* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4;
+}
 
+/* Container for the chatbot */
+#chat-container {
+  max-width: 600px;
+  margin: 50px auto;
+  background: white;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Chat log styling */
+#chat-log {
+  height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Individual messages */
+.message {
+  margin-bottom: 10px;
+}
+
+.message.user {
+  color: blue;
+}
+
+.message.bot {
+  color: green;
+}
+
+/* Input form styling */
+#input-form {
+  display: flex;
+}
+
+#message-input {
+  flex: 1;
+  padding: 10px;
+}
+
+#send-button {
+  padding: 10px;
+}
