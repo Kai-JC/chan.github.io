@@ -18,7 +18,7 @@ form.addEventListener("submit", async (e) => {
 
   try {
     // IMPORTANT: Replace the URL below with your external backend URL (see Part 2)
-    const response = await fetch("https://your-backend-project.netlify.app/api/chat", {
+    const response = await fetch("https://sparkly-pie-12714f.netlify.app/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message })
