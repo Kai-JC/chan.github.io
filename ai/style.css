@@ -110,19 +110,18 @@ footer {
 }
 
 /* New Home Button styles */
-.home-button {
+.cv-link {
   display: inline-block;
   margin-top: 10px;
   padding: 10px 20px;
-  background: #808080; /* A medium gray */
+  background: #808080;
   color: #fff;
   text-decoration: none;
   border-radius: 5px;
   font-weight: bold;
   transition: background 0.2s ease-in-out;
 }
-
-.home-button:hover {
+.cv-link:hover {
   background: #666666;
 }
 
