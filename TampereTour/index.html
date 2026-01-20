@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -52,6 +53,7 @@
     .stop:hover { border-color: #3b82f6; }
     .stop h3 { margin: 0 0 4px; font-size: 15px; }
     .stop small { opacity: 0.8; display: block; line-height: 1.3; }
+    .stop .meta { margin-top: 6px; }
 
     .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1f2430; margin-left: 6px; opacity: 0.9; }
 
@@ -69,7 +71,7 @@
 <body>
   <header>
     <h1>Tampere Tram and Bar Tour</h1>
-    <p>Tap a stop to zoom. Walking routes are drawn as straight lines. Tram lines are shown as broken lines.</p>
+    <p>Tap a stop to zoom. Tram legs show board and exit stops. Walking routes use real paths where possible.</p>
   </header>
 
   <div class="wrap">
@@ -88,7 +90,7 @@
       <div id="stopList"></div>
 
       <div class="note">
-        The Tram line isn't 100% accurate but gives a rough idea.
+        Tram legs are shown between tram stops (more accurate than drawing tracks). Dashed lines represent tram travel.
       </div>
     </div>
 
@@ -111,7 +113,25 @@
       { name: "Bonker Moodcourt", lat: 61.49810116516109, lng: 23.77485009855998 }
     ];
 
-    // If a leg is longer than this, we treat it as a tram leg
+    // Tram stops used for tram legs
+    const tramStops = [
+      { id: "HERVANTAKESKUS_A", name: "Hervantakeskus A", lat: 61.450418483919975, lng: 23.84988994888475 },
+      { id: "HALLILA_A",        name: "Hallila A",        lat: 61.467118986998706, lng: 23.839698398653223 },
+      { id: "UINTIKESKUS_A",    name: "Uintikeskus A",    lat: 61.49632008469776,  lng: 23.804909177188826 },
+      { id: "SAMMONAUKIO_A",    name: "Sammonaukio A",    lat: 61.49908956582903,  lng: 23.785988958079777 }
+    ];
+
+    // Tram legs by index (i = stops[i] -> stops[i+1])
+    // 1: R-kioski -> Groove (board Hervantakeskus A, exit Hallila A)
+    // 2: Groove -> Pub Lapin Akka (board Hallila A, exit Uintikeskus A)
+    // 4: Public House Huurre -> Salhojankadun Pub (board Uintikeskus A, exit Sammonaukio A)
+    const tramLegs = {
+      1: { boardStopId: "HERVANTAKESKUS_A", alightStopId: "HALLILA_A" },
+      2: { boardStopId: "HALLILA_A",        alightStopId: "UINTIKESKUS_A" },
+      4: { boardStopId: "UINTIKESKUS_A",    alightStopId: "SAMMONAUKIO_A" }
+    };
+
+    // If a leg is longer than this, we treat it as a tram leg (fallback only)
     const TRAM_DISTANCE_KM = 1.2;
 
     // Map
@@ -124,6 +144,24 @@
     // Layers we can toggle
     const walkingLayer = L.layerGroup().addTo(map);
     const tramLayer = L.layerGroup().addTo(map);
+
+    // Tram stop icon + markers
+    const tramStopIcon = L.divIcon({
+      className: "",
+      html: `<div style="width:14px;height:14px;border-radius:999px;background:#f59e0b;border:2px solid #111827;box-shadow:0 0 0 2px rgba(245,158,11,0.25);"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+
+    tramStops.forEach((ts) => {
+      L.marker([ts.lat, ts.lng], { icon: tramStopIcon })
+        .addTo(tramLayer)
+        .bindPopup(`<b>Tram stop</b><br/>${escapeHtml(ts.name)}`);
+    });
+
+    function getTramStopById(id) {
+      return tramStops.find(x => x.id === id) || null;
+    }
 
     // Sidebar and markers
     const stopList = document.getElementById("stopList");
@@ -144,16 +182,36 @@
         </div>
       `);
 
+      const nextLeg = idx < stops.length - 1 ? tramLegs[idx] : null;
+      let legHtml = "";
+
+      if (nextLeg) {
+        const board = getTramStopById(nextLeg.boardStopId);
+        const alight = getTramStopById(nextLeg.alightStopId);
+        if (board && alight) {
+          legHtml = `
+            <div class="meta">
+              <small><b>Next:</b> Tram</small>
+              <small>Board: ${escapeHtml(board.name)}</small>
+              <small>Exit: ${escapeHtml(alight.name)}</small>
+            </div>
+          `;
+        }
+      }
+
       const card = document.createElement("div");
       card.className = "stop";
       card.innerHTML = `
         <h3>${idx + 1}. ${escapeHtml(s.name)}</h3>
         ${s.note ? `<small>${escapeHtml(s.note)}</small>` : `<small>Tap to zoom</small>`}
+        ${legHtml}
       `;
+
       card.addEventListener("click", () => {
         map.setView(ll, 16, { animate: true });
         marker.openPopup();
       });
+
       stopList.appendChild(card);
     });
 
@@ -178,33 +236,73 @@
 
         const dKm = haversineKm(a.lat, a.lng, b.lat, b.lng);
 
-        if (dKm <= TRAM_DISTANCE_KM) {
-          // Walking leg: use OSRM public endpoint to get a real walking geometry
+        if (!tramLegs[i] && dKm <= TRAM_DISTANCE_KM) {
+          // Walking leg: OSRM geometry, fallback to straight line
           try {
             const geo = await fetchWalkingGeoJSON(a, b);
             const line = L.geoJSON(geo, { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
             line.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
           } catch (err) {
-            // Fallback: straight line if OSRM fails
             const fallback = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
             fallback.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
           }
         } else {
-          // Tram leg: show as tram segment between stops
-          // Strict tram plus walking: we show tram line travel, not bus
-          const tram = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+          // Tram leg: use your defined board/exit stops where available
+          const leg = tramLegs[i];
+
+          if (!leg) {
+            // Fallback tram leg if not configured
+            const tram = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+              weight: 5,
+              opacity: 0.9,
+              dashArray: "10 8"
+            }).addTo(tramLayer);
+
+            tram.bindPopup(`<b>Tram</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
+            continue;
+          }
+
+          const board = getTramStopById(leg.boardStopId);
+          const alight = getTramStopById(leg.alightStopId);
+          if (!board || !alight) continue;
+
+          // Walk: bar -> board stop
+          try {
+            const geo1 = await fetchWalkingGeoJSON(a, board);
+            L.geoJSON(geo1, { weight: 4, opacity: 0.95 })
+              .addTo(walkingLayer)
+              .bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(board.name)}`);
+          } catch {
+            L.polyline([[a.lat, a.lng], [board.lat, board.lng]], { weight: 4, opacity: 0.95 })
+              .addTo(walkingLayer)
+              .bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(board.name)}`);
+          }
+
+          // Tram: board -> alight (instructional dashed line)
+          L.polyline([[board.lat, board.lng], [alight.lat, alight.lng]], {
             weight: 5,
             opacity: 0.9,
             dashArray: "10 8"
-          }).addTo(tramLayer);
+          }).addTo(tramLayer).bindPopup(
+            `<b>Tram</b><br/>Board: ${escapeHtml(board.name)}<br/>Exit: ${escapeHtml(alight.name)}`
+          );
 
-          tram.bindPopup(`<b>Tram 3</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
+          // Walk: alight stop -> next bar
+          try {
+            const geo2 = await fetchWalkingGeoJSON(alight, b);
+            L.geoJSON(geo2, { weight: 4, opacity: 0.95 })
+              .addTo(walkingLayer)
+              .bindPopup(`<b>Walk</b><br/>${escapeHtml(alight.name)} → ${escapeHtml(b.name)}`);
+          } catch {
+            L.polyline([[alight.lat, alight.lng], [b.lat, b.lng]], { weight: 4, opacity: 0.95 })
+              .addTo(walkingLayer)
+              .bindPopup(`<b>Walk</b><br/>${escapeHtml(alight.name)} → ${escapeHtml(b.name)}`);
+          }
         }
       }
     })();
 
     async function fetchWalkingGeoJSON(a, b) {
-      // OSRM expects lon,lat
       const url =
         "https://router.project-osrm.org/route/v1/foot/" +
         `${a.lng},${a.lat};${b.lng},${b.lat}` +
@@ -246,3 +344,4 @@
   </script>
 </body>
 </html>
+```
