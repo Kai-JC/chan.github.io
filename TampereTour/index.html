@@ -1,1 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tampere Tram and Bar Tour</title>
 
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #0b0c10; color: #e9eef5; }
+    header { padding: 14px 16px; border-bottom: 1px solid #1f2430; }
+    header h1 { margin: 0; font-size: 18px; }
+    header p { margin: 6px 0 0; opacity: 0.85; font-size: 14px; line-height: 1.35; }
+
+    .wrap { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 66px); }
+    #sidebar { padding: 12px; border-right: 1px solid #1f2430; background: #0f1117; overflow: auto; }
+    #map { height: calc(100vh - 66px); }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid #1f2430;
+      border-radius: 12px;
+      background: #0b0c10;
+      cursor: pointer;
+      user-select: none;
+      font-size: 13px;
+    }
+    .toggle input { transform: translateY(1px); }
+
+    .stop { padding: 10px; border: 1px solid #1f2430; border-radius: 12px; margin-bottom: 10px; background: #0b0c10; cursor: pointer; }
+    .stop:hover { border-color: #3b82f6; }
+    .stop h3 { margin: 0 0 4px; font-size: 15px; }
+    .stop small { opacity: 0.8; display: block; line-height: 1.3; }
+
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1f2430; margin-left: 6px; opacity: 0.9; }
+
+    .note { font-size: 13px; opacity: 0.85; margin-top: 10px; line-height: 1.35; }
+    a { color: #93c5fd; }
+
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      #map { height: 60vh; }
+      #sidebar { border-right: none; border-top: 1px solid #1f2430; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Tampere Tram and Bar Tour</h1>
+    <p>Tap a stop to zoom. Walking routes are drawn precisely. Tram legs are shown as Tram 3 segments.</p>
+  </header>
+
+  <div class="wrap">
+    <div id="sidebar">
+      <div class="controls">
+        <label class="toggle">
+          <input id="showWalking" type="checkbox" checked />
+          Show walking routes
+        </label>
+        <label class="toggle">
+          <input id="showTram" type="checkbox" checked />
+          Show tram legs
+        </label>
+      </div>
+
+      <div id="stopList"></div>
+
+      <div class="note">
+        Tram legs are styled as Tram 3. Line 3 runs from Hervantajärvi through Hervanta toward Sorin aukio. :contentReference[oaicite:1]{index=1}
+      </div>
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <script>
+    // Stops in the given order
+    const stops = [
+      { name: "Pub Kultainen Apina", lat: 61.45180039267094, lng: 23.847843030883727 },
+      { name: "R-kioski Hervanta", lat: 61.45095110734877, lng: 23.84821247387784, note: "Stop here for Tram Beers." },
+      { name: "Groove bar & bbq", lat: 61.46619566220167, lng: 23.83736737682503, note: "Check if open as times are weird." },
+      { name: "Pub Lapin Akka", lat: 61.496300035697764, lng: 23.80814057065695 },
+      { name: "Public House Huurre", lat: 61.495987278953805, lng: 23.80480193436901, note: "Get some food here?." },
+      { name: "Salhojankadun Pub", lat: 61.499354755020235, lng: 23.784149045167645 },
+      { name: "Pub Pikilinna", lat: 61.501091225467, lng: 23.781425030071357 },
+      { name: "Bar Oma", lat: 61.501541579967686, lng: 23.781409583705603 },
+      { name: "Wanha Mestari", lat: 61.50090578671909, lng: 23.779951155980573 },
+      { name: "Bar Passion", lat: 61.49849771453917, lng: 23.77782132060677 },
+      { name: "Bonker Moodcourt", lat: 61.49810116516109, lng: 23.77485009855998 }
+    ];
+
+    // If a leg is longer than this, we treat it as a tram leg
+    const TRAM_DISTANCE_KM = 1.2;
+
+    // Map
+    const map = L.map("map", { zoomControl: true });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Layers we can toggle
+    const walkingLayer = L.layerGroup().addTo(map);
+    const tramLayer = L.layerGroup().addTo(map);
+
+    // Sidebar and markers
+    const stopList = document.getElementById("stopList");
+    const markers = [];
+    const bounds = [];
+
+    stops.forEach((s, idx) => {
+      const ll = [s.lat, s.lng];
+      bounds.push(ll);
+
+      const marker = L.marker(ll).addTo(map);
+      markers.push(marker);
+
+      marker.bindPopup(`
+        <div style="min-width:220px">
+          <b>${idx + 1}. ${escapeHtml(s.name)}</b>
+          ${s.note ? `<div style="margin-top:6px">${escapeHtml(s.note)}</div>` : ""}
+        </div>
+      `);
+
+      const card = document.createElement("div");
+      card.className = "stop";
+      card.innerHTML = `
+        <h3>${idx + 1}. ${escapeHtml(s.name)}</h3>
+        ${s.note ? `<small>${escapeHtml(s.note)}</small>` : `<small>Tap to zoom</small>`}
+      `;
+      card.addEventListener("click", () => {
+        map.setView(ll, 16, { animate: true });
+        marker.openPopup();
+      });
+      stopList.appendChild(card);
+    });
+
+    // Fit to all markers
+    map.fitBounds(L.latLngBounds(bounds).pad(0.2));
+
+    // Controls
+    document.getElementById("showWalking").addEventListener("change", (e) => {
+      if (e.target.checked) walkingLayer.addTo(map);
+      else map.removeLayer(walkingLayer);
+    });
+    document.getElementById("showTram").addEventListener("change", (e) => {
+      if (e.target.checked) tramLayer.addTo(map);
+      else map.removeLayer(tramLayer);
+    });
+
+    // Draw routes
+    (async function buildRoutes() {
+      for (let i = 0; i < stops.length - 1; i++) {
+        const a = stops[i];
+        const b = stops[i + 1];
+
+        const dKm = haversineKm(a.lat, a.lng, b.lat, b.lng);
+
+        if (dKm <= TRAM_DISTANCE_KM) {
+          // Walking leg: use OSRM public endpoint to get a real walking geometry
+          try {
+            const geo = await fetchWalkingGeoJSON(a, b);
+            const line = L.geoJSON(geo, { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
+            line.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
+          } catch (err) {
+            // Fallback: straight line if OSRM fails
+            const fallback = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
+            fallback.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
+          }
+        } else {
+          // Tram leg: show as tram segment between stops
+          // Strict tram plus walking: we show tram line travel, not bus
+          const tram = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
+            weight: 5,
+            opacity: 0.9,
+            dashArray: "10 8"
+          }).addTo(tramLayer);
+
+          tram.bindPopup(`<b>Tram 3</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
+        }
+      }
+    })();
+
+    async function fetchWalkingGeoJSON(a, b) {
+      // OSRM expects lon,lat
+      const url =
+        "https://router.project-osrm.org/route/v1/foot/" +
+        `${a.lng},${a.lat};${b.lng},${b.lat}` +
+        "?overview=full&geometries=geojson&steps=false";
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Routing failed");
+      const data = await res.json();
+      if (!data.routes || !data.routes[0] || !data.routes[0].geometry) throw new Error("No geometry");
+
+      return {
+        type: "Feature",
+        properties: { mode: "walk" },
+        geometry: data.routes[0].geometry
+      };
+    }
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (x) => (x * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
