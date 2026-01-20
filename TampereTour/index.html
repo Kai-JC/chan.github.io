@@ -1,64 +1,45 @@
-```html
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tampere Tram and Bar Tour</title>
+  <title>Tampere Tour 2026!</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #0b0c10; color: #e9eef5; }
     header { padding: 14px 16px; border-bottom: 1px solid #1f2430; }
     header h1 { margin: 0; font-size: 18px; }
-    header p { margin: 6px 0 0; opacity: 0.85; font-size: 14px; line-height: 1.35; }
+    header p { margin: 6px 0 0; opacity: 0.85; font-size: 14px; }
 
     .wrap { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 66px); }
     #sidebar { padding: 12px; border-right: 1px solid #1f2430; background: #0f1117; overflow: auto; }
     #map { height: calc(100vh - 66px); }
 
-    .controls {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
+    .stop {
+      padding: 10px;
       border: 1px solid #1f2430;
       border-radius: 12px;
+      margin-bottom: 10px;
       background: #0b0c10;
       cursor: pointer;
-      user-select: none;
-      font-size: 13px;
     }
-    .toggle input { transform: translateY(1px); }
-
-    .stop { padding: 10px; border: 1px solid #1f2430; border-radius: 12px; margin-bottom: 10px; background: #0b0c10; cursor: pointer; }
-    .stop:hover { border-color: #3b82f6; }
+    .stop:hover { border-color: #ef4444; }
     .stop h3 { margin: 0 0 4px; font-size: 15px; }
     .stop small { opacity: 0.8; display: block; line-height: 1.3; }
-    .stop .meta { margin-top: 6px; }
 
-    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #1f2430; margin-left: 6px; opacity: 0.9; }
+    .meta { margin-top: 6px; }
+    .meta small { display: block; opacity: 0.85; }
 
-    .note { font-size: 13px; opacity: 0.85; margin-top: 10px; line-height: 1.35; }
-    a { color: #93c5fd; }
+    .note {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.35;
+    }
 
     @media (max-width: 900px) {
       .wrap { grid-template-columns: 1fr; }
@@ -69,279 +50,159 @@
 </head>
 
 <body>
-  <header>
-    <h1>Tampere Tram and Bar Tour</h1>
-    <p>Tap a stop to zoom. Tram legs show board and exit stops. Walking routes use real paths where possible.</p>
-  </header>
+<header>
+  <h1>Tampere Tour 2026!</h1>
+  <p>Red markers are bars. Orange markers are tram stops. 🏠 is home.</p>
+</header>
 
-  <div class="wrap">
-    <div id="sidebar">
-      <div class="controls">
-        <label class="toggle">
-          <input id="showWalking" type="checkbox" checked />
-          Show walking routes
-        </label>
-        <label class="toggle">
-          <input id="showTram" type="checkbox" checked />
-          Show tram legs
-        </label>
-      </div>
-
-      <div id="stopList"></div>
-
-      <div class="note">
-        Tram legs are shown between tram stops (more accurate than drawing tracks). Dashed lines represent tram travel.
-      </div>
+<div class="wrap">
+  <div id="sidebar">
+    <div id="stopList"></div>
+    <div class="note">
+      Tram travel is shown by boarding and exit stops only.
     </div>
-
-    <div id="map"></div>
   </div>
+  <div id="map"></div>
+</div>
 
-  <script>
-    // Stops in the given order
-    const stops = [
-      { name: "Pub Kultainen Apina", lat: 61.45180039267094, lng: 23.847843030883727 },
-      { name: "R-kioski Hervanta", lat: 61.45095110734877, lng: 23.84821247387784, note: "Stop here for Tram Beers." },
-      { name: "Groove bar & bbq", lat: 61.46619566220167, lng: 23.83736737682503, note: "Check if open as times are weird." },
-      { name: "Pub Lapin Akka", lat: 61.496300035697764, lng: 23.80814057065695 },
-      { name: "Public House Huurre", lat: 61.495987278953805, lng: 23.80480193436901, note: "Get some food here?" },
-      { name: "Salhojankadun Pub", lat: 61.499354755020235, lng: 23.784149045167645 },
-      { name: "Pub Pikilinna", lat: 61.501091225467, lng: 23.781425030071357 },
-      { name: "Bar Oma", lat: 61.501541579967686, lng: 23.781409583705603 },
-      { name: "Wanha Mestari", lat: 61.50090578671909, lng: 23.779951155980573 },
-      { name: "Bar Passion", lat: 61.49849771453917, lng: 23.77782132060677 },
-      { name: "Bonker Moodcourt", lat: 61.49810116516109, lng: 23.77485009855998 }
-    ];
+<script>
+  // Bars / pubs
+  const stops = [
+    { name: "Pub Kultainen Apina", lat: 61.45180039267094, lng: 23.847843030883727 },
+    { name: "R-kioski Hervanta", lat: 61.45095110734877, lng: 23.84821247387784, note: "Stop here for Tram Beers." },
+    { name: "Groove bar & bbq", lat: 61.46619566220167, lng: 23.83736737682503, note: "Check if open as times are weird." },
+    { name: "Pub Lapin Akka", lat: 61.496300035697764, lng: 23.80814057065695 },
+    { name: "Public House Huurre", lat: 61.495987278953805, lng: 23.80480193436901, note: "Get some food here?" },
+    { name: "Salhojankadun Pub", lat: 61.499354755020235, lng: 23.784149045167645 },
+    { name: "Pub Pikilinna", lat: 61.501091225467, lng: 23.781425030071357 },
+    { name: "Bar Oma", lat: 61.501541579967686, lng: 23.781409583705603 },
+    { name: "Wanha Mestari", lat: 61.50090578671909, lng: 23.779951155980573 },
+    { name: "Bar Passion", lat: 61.49849771453917, lng: 23.77782132060677 },
+    { name: "Bonker Moodcourt", lat: 61.49810116516109, lng: 23.77485009855998 }
+  ];
 
-    // Tram stops used for tram legs
-    const tramStops = [
-      { id: "HERVANTAKESKUS_A", name: "Hervantakeskus A", lat: 61.450418483919975, lng: 23.84988994888475 },
-      { id: "HALLILA_A",        name: "Hallila A",        lat: 61.467118986998706, lng: 23.839698398653223 },
-      { id: "UINTIKESKUS_A",    name: "Uintikeskus A",    lat: 61.49632008469776,  lng: 23.804909177188826 },
-      { id: "SAMMONAUKIO_A",    name: "Sammonaukio A",    lat: 61.49908956582903,  lng: 23.785988958079777 }
-    ];
+  // Tram stops
+  const tramStops = [
+    { id: "HERVANTAKESKUS_A", name: "Hervantakeskus A", lat: 61.450418483919975, lng: 23.84988994888475 },
+    { id: "HALLILA_A", name: "Hallila A", lat: 61.467118986998706, lng: 23.839698398653223 },
+    { id: "UINTIKESKUS_A", name: "Uintikeskus A", lat: 61.49632008469776, lng: 23.804909177188826 },
+    { id: "SAMMONAUKIO_A", name: "Sammonaukio A", lat: 61.49908956582903, lng: 23.785988958079777 }
+  ];
 
-    // Tram legs by index (i = stops[i] -> stops[i+1])
-    // 1: R-kioski -> Groove (board Hervantakeskus A, exit Hallila A)
-    // 2: Groove -> Pub Lapin Akka (board Hallila A, exit Uintikeskus A)
-    // 4: Public House Huurre -> Salhojankadun Pub (board Uintikeskus A, exit Sammonaukio A)
-    const tramLegs = {
-      1: { boardStopId: "HERVANTAKESKUS_A", alightStopId: "HALLILA_A" },
-      2: { boardStopId: "HALLILA_A",        alightStopId: "UINTIKESKUS_A" },
-      4: { boardStopId: "UINTIKESKUS_A",    alightStopId: "SAMMONAUKIO_A" }
+  // Home
+  const home = {
+    name: "KOTI",
+    lat: 61.47237800783689,
+    lng: 23.728887560457608
+  };
+
+  // Tram legs by index
+  const tramLegs = {
+    1: { board: "HERVANTAKESKUS_A", exit: "HALLILA_A" },
+    2: { board: "HALLILA_A", exit: "UINTIKESKUS_A" },
+    4: { board: "UINTIKESKUS_A", exit: "SAMMONAUKIO_A" }
+  };
+
+  const map = L.map("map");
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap"
+  }).addTo(map);
+
+  // Icons
+  const barIcon = L.divIcon({
+    className: "",
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:#ef4444;border:2px solid #111827;"></div>`,
+    iconSize: [14,14],
+    iconAnchor: [7,7]
+  });
+
+  const tramIcon = L.divIcon({
+    className: "",
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:#f59e0b;border:2px solid #111827;"></div>`,
+    iconSize: [14,14],
+    iconAnchor: [7,7]
+  });
+
+  const homeIcon = L.divIcon({
+    className: "",
+    html: `<div style="
+      width:18px;height:18px;border-radius:4px;
+      background:#22c55e;color:#022c22;
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;
+      border:2px solid #052e16;">🏠</div>`,
+    iconSize: [18,18],
+    iconAnchor: [9,9]
+  });
+
+  const bounds = [];
+  const stopList = document.getElementById("stopList");
+
+  function getTram(id) {
+    return tramStops.find(t => t.id === id);
+  }
+
+  // Add bars
+  stops.forEach((s, i) => {
+    const ll = [s.lat, s.lng];
+    bounds.push(ll);
+
+    const marker = L.marker(ll, { icon: barIcon }).addTo(map);
+    marker.bindPopup(`<b>${i + 1}. ${s.name}</b>${s.note ? `<br/>${s.note}` : ""}`);
+
+    let tramInfo = "";
+    if (tramLegs[i]) {
+      const leg = tramLegs[i];
+      const board = getTram(leg.board);
+      const exit = getTram(leg.exit);
+      if (board && exit) {
+        tramInfo = `
+          <div class="meta">
+            <small><b>Next:</b> Tram</small>
+            <small>Board: ${board.name}</small>
+            <small>Exit: ${exit.name}</small>
+          </div>`;
+      }
+    }
+
+    const div = document.createElement("div");
+    div.className = "stop";
+    div.innerHTML = `
+      <h3>${i + 1}. ${s.name}</h3>
+      ${s.note ? `<small>${s.note}</small>` : ""}
+      ${tramInfo}
+    `;
+    div.onclick = () => {
+      map.setView(ll, 16);
+      marker.openPopup();
     };
+    stopList.appendChild(div);
+  });
 
-    // If a leg is longer than this, we treat it as a tram leg (fallback only)
-    const TRAM_DISTANCE_KM = 1.2;
+  // Add tram stops
+  tramStops.forEach(t => {
+    bounds.push([t.lat, t.lng]);
+    L.marker([t.lat, t.lng], { icon: tramIcon })
+      .addTo(map)
+      .bindPopup(`<b>Tram stop</b><br/>${t.name}`);
+  });
 
-    // Map
-    const map = L.map("map", { zoomControl: true });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+  // Add home
+  bounds.push([home.lat, home.lng]);
+  const homeMarker = L.marker([home.lat, home.lng], { icon: homeIcon }).addTo(map);
+  homeMarker.bindPopup(`<b>${home.name}</b>`);
 
-    // Layers we can toggle
-    const walkingLayer = L.layerGroup().addTo(map);
-    const tramLayer = L.layerGroup().addTo(map);
+  const homeDiv = document.createElement("div");
+  homeDiv.className = "stop";
+  homeDiv.innerHTML = `<h3>🏠 ${home.name}</h3><small>Home</small>`;
+  homeDiv.onclick = () => {
+    map.setView([home.lat, home.lng], 16);
+    homeMarker.openPopup();
+  };
+  stopList.appendChild(homeDiv);
 
-    // Tram stop icon + markers
-    const tramStopIcon = L.divIcon({
-      className: "",
-      html: `<div style="width:14px;height:14px;border-radius:999px;background:#f59e0b;border:2px solid #111827;box-shadow:0 0 0 2px rgba(245,158,11,0.25);"></div>`,
-      iconSize: [14, 14],
-      iconAnchor: [7, 7]
-    });
-
-    tramStops.forEach((ts) => {
-      L.marker([ts.lat, ts.lng], { icon: tramStopIcon })
-        .addTo(tramLayer)
-        .bindPopup(`<b>Tram stop</b><br/>${escapeHtml(ts.name)}`);
-    });
-
-    function getTramStopById(id) {
-      return tramStops.find(x => x.id === id) || null;
-    }
-
-    // Sidebar and markers
-    const stopList = document.getElementById("stopList");
-    const markers = [];
-    const bounds = [];
-
-    stops.forEach((s, idx) => {
-      const ll = [s.lat, s.lng];
-      bounds.push(ll);
-
-      const marker = L.marker(ll).addTo(map);
-      markers.push(marker);
-
-      marker.bindPopup(`
-        <div style="min-width:220px">
-          <b>${idx + 1}. ${escapeHtml(s.name)}</b>
-          ${s.note ? `<div style="margin-top:6px">${escapeHtml(s.note)}</div>` : ""}
-        </div>
-      `);
-
-      const nextLeg = idx < stops.length - 1 ? tramLegs[idx] : null;
-      let legHtml = "";
-
-      if (nextLeg) {
-        const board = getTramStopById(nextLeg.boardStopId);
-        const alight = getTramStopById(nextLeg.alightStopId);
-        if (board && alight) {
-          legHtml = `
-            <div class="meta">
-              <small><b>Next:</b> Tram</small>
-              <small>Board: ${escapeHtml(board.name)}</small>
-              <small>Exit: ${escapeHtml(alight.name)}</small>
-            </div>
-          `;
-        }
-      }
-
-      const card = document.createElement("div");
-      card.className = "stop";
-      card.innerHTML = `
-        <h3>${idx + 1}. ${escapeHtml(s.name)}</h3>
-        ${s.note ? `<small>${escapeHtml(s.note)}</small>` : `<small>Tap to zoom</small>`}
-        ${legHtml}
-      `;
-
-      card.addEventListener("click", () => {
-        map.setView(ll, 16, { animate: true });
-        marker.openPopup();
-      });
-
-      stopList.appendChild(card);
-    });
-
-    // Fit to all markers
-    map.fitBounds(L.latLngBounds(bounds).pad(0.2));
-
-    // Controls
-    document.getElementById("showWalking").addEventListener("change", (e) => {
-      if (e.target.checked) walkingLayer.addTo(map);
-      else map.removeLayer(walkingLayer);
-    });
-    document.getElementById("showTram").addEventListener("change", (e) => {
-      if (e.target.checked) tramLayer.addTo(map);
-      else map.removeLayer(tramLayer);
-    });
-
-    // Draw routes
-    (async function buildRoutes() {
-      for (let i = 0; i < stops.length - 1; i++) {
-        const a = stops[i];
-        const b = stops[i + 1];
-
-        const dKm = haversineKm(a.lat, a.lng, b.lat, b.lng);
-
-        if (!tramLegs[i] && dKm <= TRAM_DISTANCE_KM) {
-          // Walking leg: OSRM geometry, fallback to straight line
-          try {
-            const geo = await fetchWalkingGeoJSON(a, b);
-            const line = L.geoJSON(geo, { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
-            line.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
-          } catch (err) {
-            const fallback = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], { weight: 4, opacity: 0.95 }).addTo(walkingLayer);
-            fallback.bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
-          }
-        } else {
-          // Tram leg: use your defined board/exit stops where available
-          const leg = tramLegs[i];
-
-          if (!leg) {
-            // Fallback tram leg if not configured
-            const tram = L.polyline([[a.lat, a.lng], [b.lat, b.lng]], {
-              weight: 5,
-              opacity: 0.9,
-              dashArray: "10 8"
-            }).addTo(tramLayer);
-
-            tram.bindPopup(`<b>Tram</b><br/>${escapeHtml(a.name)} → ${escapeHtml(b.name)}`);
-            continue;
-          }
-
-          const board = getTramStopById(leg.boardStopId);
-          const alight = getTramStopById(leg.alightStopId);
-          if (!board || !alight) continue;
-
-          // Walk: bar -> board stop
-          try {
-            const geo1 = await fetchWalkingGeoJSON(a, board);
-            L.geoJSON(geo1, { weight: 4, opacity: 0.95 })
-              .addTo(walkingLayer)
-              .bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(board.name)}`);
-          } catch {
-            L.polyline([[a.lat, a.lng], [board.lat, board.lng]], { weight: 4, opacity: 0.95 })
-              .addTo(walkingLayer)
-              .bindPopup(`<b>Walk</b><br/>${escapeHtml(a.name)} → ${escapeHtml(board.name)}`);
-          }
-
-          // Tram: board -> alight (instructional dashed line)
-          L.polyline([[board.lat, board.lng], [alight.lat, alight.lng]], {
-            weight: 5,
-            opacity: 0.9,
-            dashArray: "10 8"
-          }).addTo(tramLayer).bindPopup(
-            `<b>Tram</b><br/>Board: ${escapeHtml(board.name)}<br/>Exit: ${escapeHtml(alight.name)}`
-          );
-
-          // Walk: alight stop -> next bar
-          try {
-            const geo2 = await fetchWalkingGeoJSON(alight, b);
-            L.geoJSON(geo2, { weight: 4, opacity: 0.95 })
-              .addTo(walkingLayer)
-              .bindPopup(`<b>Walk</b><br/>${escapeHtml(alight.name)} → ${escapeHtml(b.name)}`);
-          } catch {
-            L.polyline([[alight.lat, alight.lng], [b.lat, b.lng]], { weight: 4, opacity: 0.95 })
-              .addTo(walkingLayer)
-              .bindPopup(`<b>Walk</b><br/>${escapeHtml(alight.name)} → ${escapeHtml(b.name)}`);
-          }
-        }
-      }
-    })();
-
-    async function fetchWalkingGeoJSON(a, b) {
-      const url =
-        "https://router.project-osrm.org/route/v1/foot/" +
-        `${a.lng},${a.lat};${b.lng},${b.lat}` +
-        "?overview=full&geometries=geojson&steps=false";
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Routing failed");
-      const data = await res.json();
-      if (!data.routes || !data.routes[0] || !data.routes[0].geometry) throw new Error("No geometry");
-
-      return {
-        type: "Feature",
-        properties: { mode: "walk" },
-        geometry: data.routes[0].geometry
-      };
-    }
-
-    function haversineKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const toRad = (x) => (x * Math.PI) / 180;
-      const dLat = toRad(lat2 - lat1);
-      const dLon = toRad(lon2 - lon1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-  </script>
+  map.fitBounds(bounds, { padding: [40, 40] });
+</script>
 </body>
 </html>
-```
