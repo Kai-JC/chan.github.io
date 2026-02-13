@@ -7,23 +7,17 @@
   <meta name="theme-color" content="#121212" />
   <title>Löyly Tap</title>
 
-  <!-- Match chan.fi/ai typography -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-
-  <!-- Use the SAME CSS as chan.fi/ai -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Small page-specific overrides (kept minimal) -->
   <style>
-    /* Keep the same container look; just allow a bit more space for the square game */
     .container { max-width: 600px; }
 
-    /* Game square: always centered, always fits container */
     .gameWrap{
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 8px;              /* matches your container radius vibe */
+      border-radius: 8px;
       overflow: hidden;
       margin-top: 14px;
       border: 1px solid #333;
@@ -34,14 +28,11 @@
       width: 100%;
       height: 100%;
       display: block;
-
-      /* stop iOS scroll/zoom gestures while tapping */
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
     }
 
-    /* Overlay panel styled to match your AI boxes */
     .overlay{
       position:absolute;
       inset:0;
@@ -50,34 +41,29 @@
       justify-content:center;
       padding: 14px;
       background: rgba(0,0,0,0.55);
+      pointer-events:auto;
     }
     .overlay.hidden{ display:none; }
 
     .panel{
       width: 100%;
       max-width: 520px;
-      background: #1e1e1e;             /* same as container */
+      background: #1e1e1e;
       border: 1px solid #333;
       border-radius: 8px;
-      padding: 14px;
-      text-align: left;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.5);  /* matches your container shadow */
+      padding: 16px 14px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
     }
     .panel h2{
       font-size: 1.3em;
-      margin-bottom: 8px;
+      margin: 0 0 14px;
       color: #e0e0e0;
     }
-    .panel p{
-      color: #9e9e9e;
-      margin-bottom: 12px;
-      line-height: 1.5;
-    }
 
-    /* Use the same “grey button” style as your HOME button */
     .gameBtn{
       display:inline-block;
-      padding: 8px 14px;
+      padding: 10px 16px;
       background: #808080;
       color: #fff;
       border: none;
@@ -85,13 +71,14 @@
       font-weight: bold;
       font-size: 0.95em;
       cursor: pointer;
-      transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+      transition: background 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.12s ease-in-out;
+      min-width: 120px;
     }
-    .gameBtn:hover,
-    .gameBtn:active{
+    .gameBtn:hover{
       background: #666666;
       color: #42a5f5;
     }
+    .gameBtn:active{ transform: translateY(1px); }
 
     .hud{
       margin-top: 10px;
@@ -103,7 +90,6 @@
     }
     .hud strong{ color:#e0e0e0; }
 
-    /* Best score centered and SAME font size */
     .bestLine{
       margin-top: 14px;
       padding-top: 14px;
@@ -114,7 +100,6 @@
     }
     .bestLine strong{ color:#e0e0e0; font-weight:700; }
 
-    /* Scroll lock */
     body.locked{
       position: fixed;
       overflow: hidden;
@@ -122,6 +107,70 @@
       left: 0;
       right: 0;
     }
+
+    /* Congrats modal */
+    .congrats{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    .congrats.show{ display:flex; }
+
+    .congratsCard{
+      width: min(520px, 92vw);
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 16px 14px;
+      text-align: center;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.55);
+      transform: translateY(10px) scale(0.96);
+      opacity: 0;
+      animation: popIn 420ms cubic-bezier(.2,.9,.25,1.2) forwards;
+      pointer-events: auto;
+    }
+    .congratsCard h3{
+      margin: 0 0 6px;
+      font-size: 1.35em;
+      color: #e0e0e0;
+    }
+    .congratsCard p{
+      margin: 0;
+      color: #9e9e9e;
+      line-height: 1.5;
+    }
+    .pill{
+      display:inline-block;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(66,165,245,0.14);
+      color: #42a5f5;
+      font-weight: 700;
+      border: 1px solid rgba(66,165,245,0.28);
+    }
+
+    @keyframes popIn{
+      0%   { transform: translateY(12px) scale(0.95); opacity: 0; }
+      60%  { transform: translateY(-2px) scale(1.02); opacity: 1; }
+      100% { transform: translateY(0px) scale(1.00); opacity: 1; }
+    }
+
+    /* Confetti canvas sits over everything */
+    #confetti{
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 9998;
+      pointer-events: none;
+    }
+    #confetti.show{ display:block; }
   </style>
 </head>
 
@@ -144,10 +193,7 @@
         <div class="overlay" id="overlay">
           <div class="panel">
             <h2 id="overlayTitle">Ready?</h2>
-            <p id="overlayMsg">Press Start, then tap the stones as fast as you can for 10 seconds.</p>
-            <div style="display:flex; justify-content:flex-end;">
-              <button class="gameBtn" id="mainBtn">Start</button>
-            </div>
+            <button class="gameBtn" id="mainBtn">Start</button>
           </div>
         </div>
       </div>
@@ -162,12 +208,22 @@
     </div>
   </footer>
 
+  <!-- Congrats + Confetti -->
+  <canvas id="confetti"></canvas>
+  <div class="congrats" id="congrats">
+    <div class="congratsCard" role="dialog" aria-live="polite" aria-label="New high score">
+      <h3>New High Score!</h3>
+      <p id="congratsText">Nice.</p>
+      <div class="pill" id="congratsPill">Best: 0</div>
+    </div>
+  </div>
+
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
     (() => {
       const ROUND_SECONDS = 10;
-      const STORAGE_KEY_BEST = "loylyTapBestScore_v3";
+      const STORAGE_KEY_BEST = "loylyTapBestScore_v4";
 
       const ASSET_STONES = "stones.jpg";
       const ASSET_LADLE  = "ladle.png";
@@ -178,8 +234,11 @@
 
       const overlay = document.getElementById("overlay");
       const overlayTitle = document.getElementById("overlayTitle");
-      const overlayMsg = document.getElementById("overlayMsg");
       const mainBtn = document.getElementById("mainBtn");
+
+      const congrats = document.getElementById("congrats");
+      const congratsText = document.getElementById("congratsText");
+      const congratsPill = document.getElementById("congratsPill");
 
       const canvas = document.getElementById("c");
       const ctx = canvas.getContext("2d");
@@ -253,24 +312,8 @@
         window.scrollTo(0, y || 0);
       }
 
-      function setOverlay(mode, data){
-        overlay.classList.remove("hidden");
-
-        if (mode === State.READY){
-          overlayTitle.textContent = "Ready?";
-          overlayMsg.textContent = "Press Start, then tap the stones as fast as you can for 10 seconds.";
-          mainBtn.textContent = "Start";
-        }
-
-        if (mode === State.RESULT){
-          overlayTitle.textContent = "Time!";
-          overlayMsg.textContent = data.message;
-          mainBtn.textContent = "Play again";
-        }
-
-        if (mode === State.RUNNING){
-          overlay.classList.add("hidden");
-        }
+      function setOverlayVisible(visible){
+        overlay.classList.toggle("hidden", !visible);
       }
 
       function startRound(){
@@ -288,7 +331,7 @@
 
         state = State.RUNNING;
         lockScroll();
-        setOverlay(State.RUNNING);
+        setOverlayVisible(false);
       }
 
       function endRound(){
@@ -298,12 +341,13 @@
         const best = getBest();
         if (score > best){
           setBest(score);
-          setOverlay(State.RESULT, { message: `New best score: ${score}. Nice.` });
-        } else {
-          setOverlay(State.RESULT, { message: `You scored ${score}. Your best is ${best}.` });
+          showCongrats(score);
         }
 
         state = State.RESULT;
+        overlayTitle.textContent = "Ready?";
+        mainBtn.textContent = "Play again";
+        setOverlayVisible(true);
       }
 
       function updateTimer(){
@@ -332,7 +376,6 @@
       }
 
       function spawnSplash(x,y, strength){
-        // bigger impact ring
         rings.push({
           x, y,
           born: performance.now(),
@@ -341,7 +384,6 @@
           r1: 120 + strength*120
         });
 
-        // bigger droplets
         const n = Math.floor(28 + strength*34);
         for (let i=0;i<n;i++){
           const a = rnd(-Math.PI*0.95, -Math.PI*0.05);
@@ -356,7 +398,6 @@
           });
         }
 
-        // more steam
         const sn = Math.floor(4 + strength*4);
         for (let i=0;i<sn;i++){
           steams.push({
@@ -467,7 +508,6 @@
           ctx.shadowBlur = 16;
           ctx.drawImage(ladleImg, -size*0.58, -size*0.18, size, size);
         }
-
         ctx.restore();
       }
 
@@ -531,7 +571,6 @@
         registerTap(x,y);
       }, { passive: false });
 
-      // Extra iOS guard
       window.addEventListener("touchmove", (e) => {
         if (state === State.RUNNING) e.preventDefault();
       }, { passive: false });
@@ -540,15 +579,129 @@
         if (state === State.READY) return startRound();
         if (state === State.RESULT) {
           state = State.READY;
-          return setOverlay(State.READY);
+          mainBtn.textContent = "Start";
+          setOverlayVisible(true);
+          return;
         }
       });
 
       setInterval(() => { if (state === State.RUNNING) updateTimer(); }, 50);
 
+      // Confetti
+      const confettiCanvas = document.getElementById("confetti");
+      const cctx = confettiCanvas.getContext("2d");
+      let confettiPieces = [];
+      let confettiOn = false;
+      let confettiStart = 0;
+
+      function resizeConfetti(){
+        const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+        confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+        confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+        cctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener("resize", resizeConfetti);
+
+      function burstConfetti(){
+        resizeConfetti();
+        confettiPieces = [];
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const count = 140;
+
+        for (let i=0;i<count;i++){
+          confettiPieces.push({
+            x: W*0.5 + rnd(-80,80),
+            y: H*0.35 + rnd(-40,40),
+            vx: rnd(-6.5, 6.5),
+            vy: rnd(-10.5, -4.5),
+            g: rnd(0.18, 0.30),
+            r: rnd(2.5, 5.2),
+            w: rnd(6, 12),
+            h: rnd(10, 16),
+            rot: rnd(0, Math.PI),
+            vr: rnd(-0.20, 0.20),
+            life: rnd(900, 1400),
+            born: performance.now(),
+            // soft palette that fits your theme
+            col: [
+              "rgba(66,165,245,0.95)",
+              "rgba(255,255,255,0.85)",
+              "rgba(160,160,160,0.85)",
+              "rgba(120,200,255,0.85)"
+            ][Math.floor(rnd(0,4))]
+          });
+        }
+
+        confettiOn = true;
+        confettiStart = performance.now();
+        confettiCanvas.classList.add("show");
+        requestAnimationFrame(confettiFrame);
+      }
+
+      function confettiFrame(now){
+        if (!confettiOn) return;
+
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+
+        cctx.clearRect(0,0,W,H);
+
+        let alive = 0;
+        for (const p of confettiPieces){
+          const t = now - p.born;
+          if (t >= p.life) continue;
+          alive++;
+
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.g;
+          p.vx *= 0.992;
+          p.rot += p.vr;
+
+          const fade = 1 - (t / p.life);
+          cctx.save();
+          cctx.globalAlpha = Math.max(0, fade) * 0.95;
+          cctx.translate(p.x, p.y);
+          cctx.rotate(p.rot);
+          cctx.fillStyle = p.col;
+          cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          cctx.restore();
+        }
+
+        // stop
+        if (alive === 0 || (now - confettiStart) > 1600){
+          confettiOn = false;
+          confettiCanvas.classList.remove("show");
+          cctx.clearRect(0,0,W,H);
+          return;
+        }
+
+        requestAnimationFrame(confettiFrame);
+      }
+
+      // Congrats popup
+      let congratsTimer = null;
+      function showCongrats(newBest){
+        congratsText.textContent = `You hit ${newBest} taps.`;
+        congratsPill.textContent = `Best: ${newBest}`;
+
+        congrats.classList.add("show");
+        burstConfetti();
+
+        clearTimeout(congratsTimer);
+        congratsTimer = setTimeout(() => {
+          congrats.classList.remove("show");
+        }, 1500);
+      }
+
+      function setOverlayVisible(visible){
+        overlay.classList.toggle("hidden", !visible);
+      }
+
       // Init
       setBest(getBest());
-      setOverlay(State.READY);
+      setOverlayVisible(true);
       timeLeftEl.textContent = ROUND_SECONDS.toFixed(1) + "s";
 
       (async () => {
