@@ -2,231 +2,172 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Löyly Tap" />
+  <meta name="theme-color" content="#121212" />
   <title>Löyly Tap</title>
+
+  <!-- Match chan.fi/ai typography -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Use the SAME CSS as chan.fi/ai -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Small page-specific overrides (kept minimal) -->
   <style>
-    :root{
-      --bg: #121212;
-      --card: #323232;
-      --card2: #2b2b2b;
-      --border: rgba(255,255,255,0.12);
-      --text: #f2f2f2;
-      --muted: rgba(242,242,242,0.75);
-      --btn: #757575;
-      --btnHover: #868686;
-      --btnText: #ffffff;
-      --shadow: 0 10px 28px rgba(0,0,0,0.55);
-      --radius: 12px;
-    }
+    /* Keep the same container look; just allow a bit more space for the square game */
+    .container { max-width: 600px; }
 
-    *{ box-sizing:border-box; }
-
-    html, body { height: 100%; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      /* Safer centering on iOS Safari */
-      padding:
-        calc(26px + env(safe-area-inset-top))
-        max(14px, env(safe-area-inset-right))
-        calc(26px + env(safe-area-inset-bottom))
-        max(14px, env(safe-area-inset-left));
-    }
-
-    /* Lock scrolling during the round */
-    body.locked{
-      position: fixed;
-      width: 100%;
-      overflow: hidden;
-      left: 0;
-      right: 0;
-    }
-
-    .card{
-      width: min(820px, 92vw);
-      margin: 0 auto;
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px 18px 18px;
-      border: 1px solid rgba(255,255,255,0.06);
-      text-align:center;
-    }
-
-    h1{
-      margin: 2px 0 8px;
-      font-size: 34px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .subtitle{
-      margin: 0 auto 14px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-      max-width: 62ch;
-    }
-
-    .meta{
-      display:flex;
-      justify-content:center;
-      gap: 18px;
-      flex-wrap:wrap;
-      margin: 10px 0 14px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .meta strong{
-      color: var(--text);
-      font-weight: 900;
-    }
-
+    /* Game square: always centered, always fits container */
     .gameWrap{
-      position:relative;
-      width: min(640px, 88vw);
+      position: relative;
+      width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 14px;
-      overflow:hidden;
-      margin: 10px auto 14px; /* force centered */
-      border: 1px solid var(--border);
+      border-radius: 8px;              /* matches your container radius vibe */
+      overflow: hidden;
+      margin-top: 14px;
+      border: 1px solid #333;
       background: #0b0b0b;
     }
 
     canvas{
-      width:100%;
-      height:100%;
-      display:block;
+      width: 100%;
+      height: 100%;
+      display: block;
 
-      /* important: stop scroll/drag while tapping on canvas */
+      /* stop iOS scroll/zoom gestures while tapping */
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
-
-      cursor:pointer;
     }
 
+    /* Overlay panel styled to match your AI boxes */
     .overlay{
       position:absolute;
       inset:0;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 16px;
+      padding: 14px;
       background: rgba(0,0,0,0.55);
-      pointer-events:auto;
     }
     .overlay.hidden{ display:none; }
 
     .panel{
-      width: min(520px, 92vw);
-      background: var(--card2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      width: 100%;
+      max-width: 520px;
+      background: #1e1e1e;             /* same as container */
+      border: 1px solid #333;
+      border-radius: 8px;
       padding: 14px;
-      text-align:left;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      text-align: left;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);  /* matches your container shadow */
     }
     .panel h2{
-      margin:0 0 6px;
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--text);
+      font-size: 1.3em;
+      margin-bottom: 8px;
+      color: #e0e0e0;
     }
     .panel p{
-      margin:0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
+      color: #9e9e9e;
+      margin-bottom: 12px;
+      line-height: 1.5;
     }
 
-    .row{
-      display:flex;
-      justify-content:flex-end;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    button{
-      appearance:none;
-      border: none;
-      background: var(--btn);
-      color: var(--btnText);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-weight: 750;
-      cursor:pointer;
-      user-select:none;
-      touch-action: manipulation;
-    }
-    button:hover{ background: var(--btnHover); }
-    button:active{ transform: translateY(1px); }
-
-    /* Best score bigger + centered */
-    .bestLine{
-      width: min(640px, 88vw);
-      margin: 6px auto 0;
-      text-align:center;
-      border-top: 1px solid rgba(255,255,255,0.10);
-      padding-top: 14px;
-      color: var(--muted);
-      font-size: 16px;
-    }
-    .bestLine strong{
+    /* Use the same “grey button” style as your HOME button */
+    .gameBtn{
       display:inline-block;
-      color: var(--text);
-      font-weight: 900;
-      font-size: 26px;
-      margin-left: 8px;
+      padding: 8px 14px;
+      background: #808080;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+    }
+    .gameBtn:hover,
+    .gameBtn:active{
+      background: #666666;
+      color: #42a5f5;
     }
 
-    .foot{
-      margin-top: 16px;
-      color: rgba(242,242,242,0.55);
-      font-size: 12px;
+    .hud{
+      margin-top: 10px;
+      display:flex;
+      justify-content:center;
+      gap: 18px;
+      color:#9e9e9e;
+      font-size: 1.05em;
+    }
+    .hud strong{ color:#e0e0e0; }
+
+    /* Best score centered and SAME font size */
+    .bestLine{
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #333;
+      color:#9e9e9e;
+      font-size: 1.05em;
+      text-align:center;
+    }
+    .bestLine strong{ color:#e0e0e0; font-weight:700; }
+
+    /* Scroll lock */
+    body.locked{
+      position: fixed;
+      overflow: hidden;
+      width: 100%;
+      left: 0;
+      right: 0;
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h1>Löyly Tap</h1>
-    <p class="subtitle">Tap as fast as you can for <strong>10 seconds</strong>. Your best score is saved on this device.</p>
+  <header>
+    <div class="container header-container">
+      <h1>Löyly Tap</h1>
+      <p style="color:#9e9e9e; margin-top:8px;">
+        Tap as fast as you can for <strong style="color:#e0e0e0;">10 seconds</strong>. Your best score is saved on this device.
+      </p>
 
-    <div class="meta" aria-live="polite">
-      <div>Time: <strong id="timeLeft">10.0s</strong></div>
-      <div>Score: <strong id="score">0</strong></div>
-    </div>
+      <div class="hud" aria-live="polite">
+        <div>Time: <strong id="timeLeft">10.0s</strong></div>
+        <div>Score: <strong id="score">0</strong></div>
+      </div>
 
-    <div class="gameWrap">
-      <canvas id="c" width="900" height="900" aria-label="Tap to splash löyly"></canvas>
+      <div class="gameWrap">
+        <canvas id="c" width="900" height="900" aria-label="Tap to splash löyly"></canvas>
 
-      <div class="overlay" id="overlay">
-        <div class="panel">
-          <h2 id="overlayTitle">Ready?</h2>
-          <p id="overlayMsg">Press Start, then tap the stones as fast as you can for 10 seconds.</p>
-          <div class="row">
-            <button id="mainBtn">Start</button>
+        <div class="overlay" id="overlay">
+          <div class="panel">
+            <h2 id="overlayTitle">Ready?</h2>
+            <p id="overlayMsg">Press Start, then tap the stones as fast as you can for 10 seconds.</p>
+            <div style="display:flex; justify-content:flex-end;">
+              <button class="gameBtn" id="mainBtn">Start</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="bestLine">Best:<strong id="bestScore">0</strong></div>
-    <div class="foot">© 2026 Kai Chan. All rights reserved.</div>
-  </div>
+      <div class="bestLine">Best: <strong id="bestScore">0</strong></div>
+    </div>
+  </header>
+
+  <footer>
+    <div class="container">
+      <p>&copy; <span id="year"></span> Kai Chan. All rights reserved.</p>
+    </div>
+  </footer>
 
   <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
     (() => {
       const ROUND_SECONDS = 10;
-      const STORAGE_KEY_BEST = "loylyTapBestScore_v2";
+      const STORAGE_KEY_BEST = "loylyTapBestScore_v3";
 
       const ASSET_STONES = "stones.jpg";
       const ASSET_LADLE  = "ladle.png";
@@ -292,12 +233,12 @@
       let ladleKick = 0;
       let ladleKickVel = 0;
 
-      // Particles
+      // Bigger splash particles
       const droplets = [];
       const steams = [];
-      const rings = []; // expanding splash rings
+      const rings = [];
 
-      // Scroll lock (iOS safe)
+      // Scroll lock
       let savedScrollY = 0;
       function lockScroll(){
         savedScrollY = window.scrollY || 0;
@@ -358,10 +299,8 @@
         if (score > best){
           setBest(score);
           setOverlay(State.RESULT, { message: `New best score: ${score}. Nice.` });
-        } else if (best > 0) {
-          setOverlay(State.RESULT, { message: `You scored ${score}. Your best is ${best}.` });
         } else {
-          setOverlay(State.RESULT, { message: `You scored ${score}.` });
+          setOverlay(State.RESULT, { message: `You scored ${score}. Your best is ${best}.` });
         }
 
         state = State.RESULT;
@@ -393,55 +332,55 @@
       }
 
       function spawnSplash(x,y, strength){
-        // Bigger splash: more + larger droplets
-        const n = Math.floor(22 + strength*28);
-        for (let i=0;i<n;i++){
-          const a = rnd(-Math.PI*0.95, -Math.PI*0.05);
-          const sp = rnd(3.2, 8.4) * (0.9 + strength*1.0);
-          droplets.push({
-            x, y,
-            vx: Math.cos(a)*sp + rnd(-1.3,1.3),
-            vy: Math.sin(a)*sp,
-            r: rnd(3.2, 8.2),
-            life: rnd(520, 980),
-            born: performance.now()
-          });
-        }
-
-        const sn = Math.floor(3 + strength*4);
-        for (let i=0;i<sn;i++){
-          steams.push({
-            x: x + rnd(-28,28),
-            y: y + rnd(-12,12),
-            vx: rnd(-0.22,0.22),
-            vy: rnd(-0.70,-0.35),
-            r: rnd(22, 44),
-            life: rnd(900, 1500),
-            born: performance.now()
-          });
-        }
-
-        // Expanding ring for “impact”
+        // bigger impact ring
         rings.push({
           x, y,
           born: performance.now(),
-          life: 280 + strength*120,
-          r0: 10,
-          r1: 70 + strength*70
+          life: 320 + strength*180,
+          r0: 18,
+          r1: 120 + strength*120
         });
 
-        ladleKickVel += 0.95 + strength*0.85;
+        // bigger droplets
+        const n = Math.floor(28 + strength*34);
+        for (let i=0;i<n;i++){
+          const a = rnd(-Math.PI*0.95, -Math.PI*0.05);
+          const sp = rnd(3.6, 9.6) * (1.0 + strength*1.1);
+          droplets.push({
+            x, y,
+            vx: Math.cos(a)*sp + rnd(-1.4,1.4),
+            vy: Math.sin(a)*sp,
+            r: rnd(3.8, 9.8),
+            life: rnd(600, 1050),
+            born: performance.now()
+          });
+        }
+
+        // more steam
+        const sn = Math.floor(4 + strength*4);
+        for (let i=0;i<sn;i++){
+          steams.push({
+            x: x + rnd(-34,34),
+            y: y + rnd(-14,14),
+            vx: rnd(-0.24,0.24),
+            vy: rnd(-0.78,-0.40),
+            r: rnd(26, 52),
+            life: rnd(950, 1650),
+            born: performance.now()
+          });
+        }
+
+        ladleKickVel += 1.05 + strength*0.90;
       }
 
       function drawParticles(now){
-        // Ring first (under droplets)
         for (let i=rings.length-1;i>=0;i--){
           const r = rings[i];
           const t = (now - r.born) / r.life;
           if (t >= 1){ rings.splice(i,1); continue; }
           const rr = r.r0 + (r.r1 - r.r0) * t;
           ctx.save();
-          ctx.globalAlpha = (1 - t) * 0.45;
+          ctx.globalAlpha = (1 - t) * 0.42;
           ctx.lineWidth = 3;
           ctx.strokeStyle = "rgba(200,230,255,0.9)";
           ctx.beginPath();
@@ -450,21 +389,21 @@
           ctx.restore();
         }
 
-        // Droplets
         for (let i=droplets.length-1;i>=0;i--){
           const d = droplets[i];
           const age = now - d.born;
           const t = age / d.life;
           if (t >= 1){ droplets.splice(i,1); continue; }
+
           d.x += d.vx;
           d.y += d.vy;
-          d.vy += 0.24;
+          d.vy += 0.25;
           d.vx *= 0.992;
 
           const alpha = 1 - t;
           ctx.save();
-          ctx.globalAlpha = 0.75 * alpha;
-          const g = ctx.createRadialGradient(d.x-d.r*0.25, d.y-d.r*0.25, 1, d.x, d.y, d.r*2.1);
+          ctx.globalAlpha = 0.78 * alpha;
+          const g = ctx.createRadialGradient(d.x-d.r*0.25, d.y-d.r*0.25, 1, d.x, d.y, d.r*2.2);
           g.addColorStop(0, "rgba(255,255,255,0.65)");
           g.addColorStop(0.25, "rgba(170,220,255,0.45)");
           g.addColorStop(1, "rgba(120,170,210,0)");
@@ -475,12 +414,12 @@
           ctx.restore();
         }
 
-        // Steam
         for (let i=steams.length-1;i>=0;i--){
           const s = steams[i];
           const age = now - s.born;
           const t = age / s.life;
           if (t >= 1){ steams.splice(i,1); continue; }
+
           s.x += s.vx;
           s.y += s.vy;
           s.r += 0.07;
@@ -512,7 +451,7 @@
         const baseY = h * 0.28;
 
         const kick = ladleKick;
-        const rot = -0.55 + kick * 0.55;   // flick up
+        const rot = -0.55 + kick * 0.55;
         const tx  = -kick * (w * 0.020);
         const ty  = -kick * (h * 0.055);
         const sc  = 1 + kick * 0.06;
@@ -528,6 +467,7 @@
           ctx.shadowBlur = 16;
           ctx.drawImage(ladleImg, -size*0.58, -size*0.18, size, size);
         }
+
         ctx.restore();
       }
 
@@ -536,7 +476,7 @@
         ctx.save();
         ctx.globalAlpha = 0.95;
         ctx.fillStyle = "rgba(255,255,255,0.92)";
-        ctx.font = `${Math.floor(h*0.045)}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+        ctx.font = `${Math.floor(h*0.045)}px Roboto, system-ui, -apple-system, Segoe UI, Arial`;
         ctx.textAlign = "left";
         ctx.fillText(`Score: ${score}`, w*0.04, h*0.10);
         ctx.textAlign = "right";
@@ -591,7 +531,7 @@
         registerTap(x,y);
       }, { passive: false });
 
-      // Also prevent touchmove while running (extra iOS guard)
+      // Extra iOS guard
       window.addEventListener("touchmove", (e) => {
         if (state === State.RUNNING) e.preventDefault();
       }, { passive: false });
