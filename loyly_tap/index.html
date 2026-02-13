@@ -42,6 +42,7 @@
       padding: 14px;
       background: rgba(0,0,0,0.55);
       pointer-events:auto;
+      z-index: 5;
     }
     .overlay.hidden{ display:none; }
 
@@ -72,7 +73,7 @@
       font-size: 0.95em;
       cursor: pointer;
       transition: background 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.12s ease-in-out;
-      min-width: 120px;
+      min-width: 140px;
     }
     .gameBtn:hover{
       background: #666666;
@@ -117,6 +118,7 @@
       justify-content: center;
       z-index: 9999;
       pointer-events: none;
+      padding: 14px;
     }
     .congrats.show{ display:flex; }
 
@@ -160,7 +162,7 @@
       100% { transform: translateY(0px) scale(1.00); opacity: 1; }
     }
 
-    /* Confetti canvas sits over everything */
+    /* Confetti canvas */
     #confetti{
       position: fixed;
       inset: 0;
@@ -208,7 +210,6 @@
     </div>
   </footer>
 
-  <!-- Congrats + Confetti -->
   <canvas id="confetti"></canvas>
   <div class="congrats" id="congrats">
     <div class="congratsCard" role="dialog" aria-live="polite" aria-label="New high score">
@@ -223,7 +224,7 @@
 
     (() => {
       const ROUND_SECONDS = 10;
-      const STORAGE_KEY_BEST = "loylyTapBestScore_v4";
+      const STORAGE_KEY_BEST = "loylyTapBestScore_v5";
 
       const ASSET_STONES = "stones.jpg";
       const ASSET_LADLE  = "ladle.png";
@@ -316,7 +317,108 @@
         overlay.classList.toggle("hidden", !visible);
       }
 
+      // Confetti
+      const confettiCanvas = document.getElementById("confetti");
+      const cctx = confettiCanvas.getContext("2d");
+      let confettiPieces = [];
+      let confettiOn = false;
+      let confettiStart = 0;
+
+      function resizeConfetti(){
+        const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+        confettiCanvas.width = Math.floor(window.innerWidth * dpr);
+        confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+        cctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener("resize", resizeConfetti);
+
+      function burstConfetti(){
+        resizeConfetti();
+        confettiPieces = [];
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        const count = 160;
+
+        for (let i=0;i<count;i++){
+          confettiPieces.push({
+            x: W*0.5 + rnd(-90,90),
+            y: H*0.35 + rnd(-50,50),
+            vx: rnd(-6.8, 6.8),
+            vy: rnd(-11.0, -4.8),
+            g: rnd(0.18, 0.30),
+            w: rnd(6, 12),
+            h: rnd(10, 16),
+            rot: rnd(0, Math.PI),
+            vr: rnd(-0.20, 0.20),
+            life: rnd(1000, 1600),
+            born: performance.now(),
+            col: [
+              "rgba(66,165,245,0.95)",
+              "rgba(255,255,255,0.85)",
+              "rgba(160,160,160,0.85)",
+              "rgba(120,200,255,0.85)"
+            ][Math.floor(rnd(0,4))]
+          });
+        }
+
+        confettiOn = true;
+        confettiStart = performance.now();
+        confettiCanvas.classList.add("show");
+        requestAnimationFrame(confettiFrame);
+      }
+
+      function confettiFrame(now){
+        if (!confettiOn) return;
+
+        const W = window.innerWidth;
+        const H = window.innerHeight;
+        cctx.clearRect(0,0,W,H);
+
+        let alive = 0;
+        for (const p of confettiPieces){
+          const t = now - p.born;
+          if (t >= p.life) continue;
+          alive++;
+
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.g;
+          p.vx *= 0.992;
+          p.rot += p.vr;
+
+          const fade = 1 - (t / p.life);
+          cctx.save();
+          cctx.globalAlpha = Math.max(0, fade) * 0.95;
+          cctx.translate(p.x, p.y);
+          cctx.rotate(p.rot);
+          cctx.fillStyle = p.col;
+          cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+          cctx.restore();
+        }
+
+        if (alive === 0 || (now - confettiStart) > 1700){
+          confettiOn = false;
+          confettiCanvas.classList.remove("show");
+          cctx.clearRect(0,0,W,H);
+          return;
+        }
+
+        requestAnimationFrame(confettiFrame);
+      }
+
+      function showCongrats(newBest){
+        congratsText.textContent = `You hit ${newBest} taps.`;
+        congratsPill.textContent = `Best: ${newBest}`;
+        congrats.classList.add("show");
+        burstConfetti();
+      }
+
+      function hideCongrats(){
+        congrats.classList.remove("show");
+      }
+
       function startRound(){
+        hideCongrats();
         score = 0;
         scoreEl.textContent = "0";
         startTs = performance.now();
@@ -346,7 +448,7 @@
 
         state = State.RESULT;
         overlayTitle.textContent = "Ready?";
-        mainBtn.textContent = "Play again";
+        mainBtn.textContent = "Play again?";
         setOverlayVisible(true);
       }
 
@@ -376,39 +478,18 @@
       }
 
       function spawnSplash(x,y, strength){
-        rings.push({
-          x, y,
-          born: performance.now(),
-          life: 320 + strength*180,
-          r0: 18,
-          r1: 120 + strength*120
-        });
+        rings.push({ x, y, born: performance.now(), life: 320 + strength*180, r0: 18, r1: 120 + strength*120 });
 
         const n = Math.floor(28 + strength*34);
         for (let i=0;i<n;i++){
           const a = rnd(-Math.PI*0.95, -Math.PI*0.05);
           const sp = rnd(3.6, 9.6) * (1.0 + strength*1.1);
-          droplets.push({
-            x, y,
-            vx: Math.cos(a)*sp + rnd(-1.4,1.4),
-            vy: Math.sin(a)*sp,
-            r: rnd(3.8, 9.8),
-            life: rnd(600, 1050),
-            born: performance.now()
-          });
+          droplets.push({ x, y, vx: Math.cos(a)*sp + rnd(-1.4,1.4), vy: Math.sin(a)*sp, r: rnd(3.8, 9.8), life: rnd(600, 1050), born: performance.now() });
         }
 
         const sn = Math.floor(4 + strength*4);
         for (let i=0;i<sn;i++){
-          steams.push({
-            x: x + rnd(-34,34),
-            y: y + rnd(-14,14),
-            vx: rnd(-0.24,0.24),
-            vy: rnd(-0.78,-0.40),
-            r: rnd(26, 52),
-            life: rnd(950, 1650),
-            born: performance.now()
-          });
+          steams.push({ x: x + rnd(-34,34), y: y + rnd(-14,14), vx: rnd(-0.24,0.24), vy: rnd(-0.78,-0.40), r: rnd(26, 52), life: rnd(950, 1650), born: performance.now() });
         }
 
         ladleKickVel += 1.05 + strength*0.90;
@@ -435,11 +516,8 @@
           const age = now - d.born;
           const t = age / d.life;
           if (t >= 1){ droplets.splice(i,1); continue; }
-
-          d.x += d.vx;
-          d.y += d.vy;
-          d.vy += 0.25;
-          d.vx *= 0.992;
+          d.x += d.vx; d.y += d.vy;
+          d.vy += 0.25; d.vx *= 0.992;
 
           const alpha = 1 - t;
           ctx.save();
@@ -460,10 +538,7 @@
           const age = now - s.born;
           const t = age / s.life;
           if (t >= 1){ steams.splice(i,1); continue; }
-
-          s.x += s.vx;
-          s.y += s.vy;
-          s.r += 0.07;
+          s.x += s.vx; s.y += s.vy; s.r += 0.07;
 
           const alpha = (1 - t) * 0.60;
           ctx.save();
@@ -577,130 +652,15 @@
 
       mainBtn.addEventListener("click", () => {
         if (state === State.READY) return startRound();
-        if (state === State.RESULT) {
-          state = State.READY;
-          mainBtn.textContent = "Start";
-          setOverlayVisible(true);
-          return;
-        }
+        if (state === State.RESULT) return startRound();
       });
 
       setInterval(() => { if (state === State.RUNNING) updateTimer(); }, 50);
 
-      // Confetti
-      const confettiCanvas = document.getElementById("confetti");
-      const cctx = confettiCanvas.getContext("2d");
-      let confettiPieces = [];
-      let confettiOn = false;
-      let confettiStart = 0;
-
-      function resizeConfetti(){
-        const dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
-        confettiCanvas.width = Math.floor(window.innerWidth * dpr);
-        confettiCanvas.height = Math.floor(window.innerHeight * dpr);
-        cctx.setTransform(dpr,0,0,dpr,0,0);
-      }
-      window.addEventListener("resize", resizeConfetti);
-
-      function burstConfetti(){
-        resizeConfetti();
-        confettiPieces = [];
-        const W = window.innerWidth;
-        const H = window.innerHeight;
-        const count = 140;
-
-        for (let i=0;i<count;i++){
-          confettiPieces.push({
-            x: W*0.5 + rnd(-80,80),
-            y: H*0.35 + rnd(-40,40),
-            vx: rnd(-6.5, 6.5),
-            vy: rnd(-10.5, -4.5),
-            g: rnd(0.18, 0.30),
-            r: rnd(2.5, 5.2),
-            w: rnd(6, 12),
-            h: rnd(10, 16),
-            rot: rnd(0, Math.PI),
-            vr: rnd(-0.20, 0.20),
-            life: rnd(900, 1400),
-            born: performance.now(),
-            // soft palette that fits your theme
-            col: [
-              "rgba(66,165,245,0.95)",
-              "rgba(255,255,255,0.85)",
-              "rgba(160,160,160,0.85)",
-              "rgba(120,200,255,0.85)"
-            ][Math.floor(rnd(0,4))]
-          });
-        }
-
-        confettiOn = true;
-        confettiStart = performance.now();
-        confettiCanvas.classList.add("show");
-        requestAnimationFrame(confettiFrame);
-      }
-
-      function confettiFrame(now){
-        if (!confettiOn) return;
-
-        const W = window.innerWidth;
-        const H = window.innerHeight;
-
-        cctx.clearRect(0,0,W,H);
-
-        let alive = 0;
-        for (const p of confettiPieces){
-          const t = now - p.born;
-          if (t >= p.life) continue;
-          alive++;
-
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += p.g;
-          p.vx *= 0.992;
-          p.rot += p.vr;
-
-          const fade = 1 - (t / p.life);
-          cctx.save();
-          cctx.globalAlpha = Math.max(0, fade) * 0.95;
-          cctx.translate(p.x, p.y);
-          cctx.rotate(p.rot);
-          cctx.fillStyle = p.col;
-          cctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-          cctx.restore();
-        }
-
-        // stop
-        if (alive === 0 || (now - confettiStart) > 1600){
-          confettiOn = false;
-          confettiCanvas.classList.remove("show");
-          cctx.clearRect(0,0,W,H);
-          return;
-        }
-
-        requestAnimationFrame(confettiFrame);
-      }
-
-      // Congrats popup
-      let congratsTimer = null;
-      function showCongrats(newBest){
-        congratsText.textContent = `You hit ${newBest} taps.`;
-        congratsPill.textContent = `Best: ${newBest}`;
-
-        congrats.classList.add("show");
-        burstConfetti();
-
-        clearTimeout(congratsTimer);
-        congratsTimer = setTimeout(() => {
-          congrats.classList.remove("show");
-        }, 1500);
-      }
-
-      function setOverlayVisible(visible){
-        overlay.classList.toggle("hidden", !visible);
-      }
-
       // Init
       setBest(getBest());
+      overlayTitle.textContent = "Ready?";
+      mainBtn.textContent = "Start";
       setOverlayVisible(true);
       timeLeftEl.textContent = ROUND_SECONDS.toFixed(1) + "s";
 
